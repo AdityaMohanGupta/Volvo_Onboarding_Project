@@ -1,6 +1,5 @@
-/**
- * Domain model for a single employee record.
- */
+//model for a single employee record.
+
 export interface Employee {
   id: string
   name: string
@@ -9,13 +8,10 @@ export interface Employee {
   email: string
 }
 
-/**
- * Shape of an employee before it has an id (i.e. what the form produces).
- */
+//before id generation the form produces values.
+
 export type EmployeeDraft = Omit<Employee, 'id'>
 
-/**
- * Form state is a partial draft — fields start empty and fill in as the
- * user types, so nothing is guaranteed to be present yet.
- */
+//Form state is a partial draft
+
 export type EmployeeFormState = Partial<EmployeeDraft>

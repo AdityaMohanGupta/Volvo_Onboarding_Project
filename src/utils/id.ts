@@ -1,4 +1,4 @@
-/** Generates a unique id for new records. */
+//generates a unique id
 export function createId(): string {
   return crypto.randomUUID()
 }
