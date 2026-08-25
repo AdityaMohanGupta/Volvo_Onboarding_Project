@@ -19,6 +19,12 @@ export const employeeFormStyles = css`
 
     color-scheme: light dark;
     display: block;
+    /* body lays this out with flexbox - without this, this flex item sizes itself off
+       .card's own width (960px) instead of the actual viewport, so .card's max-width:100%
+       ends up chasing its own tail and never actually caps anything */
+    width: 100%;
+    max-width: 960px;
+    box-sizing: border-box;
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
     color: var(--color-text);
   }
@@ -42,11 +48,9 @@ export const employeeFormStyles = css`
   }
 
   .card {
-    /* explicit width (not just max-width) - the parent lays this out with flexbox
-       align-items:center, which shrinks each card to its own content otherwise, so
-       <employee-form> and <employee-table> would end up different widths */
-    width: 960px;
-    max-width: 100%;
+    /* :host is now the thing with the real width constraint - this just fills it,
+       so both <employee-form> and <employee-table> end up the same actual width */
+    width: 100%;
     margin: 0 auto;
     padding: 32px;
     border: 1px solid var(--color-border);
@@ -129,6 +133,11 @@ export const employeeFormStyles = css`
     border-radius: 8px;
     background: var(--color-input-bg);
     box-sizing: border-box;
+    width: 100%;
+    /* <input> has its own default intrinsic min-width (~20 characters) that ignores
+       its grid/flex container and overflows instead of shrinking - this lets it
+       actually respect its column width */
+    min-width: 0;
   }
 
   input:focus {

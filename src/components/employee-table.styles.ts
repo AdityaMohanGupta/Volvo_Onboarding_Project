@@ -18,10 +18,15 @@ export const employeeTableStyles = css`
 
     color-scheme: light dark;
     display: block;
-    /* body (index.css) lays this out with flexbox - without this, a flex item won't shrink
-       below its content's natural min-width, so the 640px-wide table would stretch the whole
-       component instead of scrolling inside its own .table-scroll container */
+    /* body lays this out with flexbox. min-width:0 stops this flex item from refusing to
+       shrink below the 640px-wide table's natural min-width (which would stretch the whole
+       component instead of scrolling inside .table-scroll). width/max-width stop it from
+       sizing itself off .card's own width instead of the actual viewport - otherwise
+       .card's width:100% would have nothing real to be 100% of */
     min-width: 0;
+    width: 100%;
+    max-width: 960px;
+    box-sizing: border-box;
     font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
     color: var(--color-text);
   }
@@ -44,11 +49,9 @@ export const employeeTableStyles = css`
   }
 
   .card {
-    /* explicit width (not just max-width) - the parent lays this out with flexbox
-       align-items:center, which shrinks each card to its own content otherwise, so
-       <employee-form> and <employee-table> would end up different widths */
-    width: 960px;
-    max-width: 100%;
+    /* :host is now the thing with the real width constraint - this just fills it,
+       so both <employee-form> and <employee-table> end up the same actual width */
+    width: 100%;
     margin: 0 auto;
     padding: 32px;
     border: 1px solid var(--color-border);
