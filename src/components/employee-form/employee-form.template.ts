@@ -1,7 +1,7 @@
 import { html } from 'lit'
-import type { EmployeeFormState } from '../models/employee'
-import { isValidEmail } from '../utils/validation'
-import { checkCircleIcon, closeIcon } from './icons'
+import type { EmployeeFormState } from '../../models/employee'
+import { isValidEmail } from '../../utils/validation'
+import { checkCircleIcon, closeIcon } from '../../assets/icons'
 
 // shape of one form field's config
 interface Field {

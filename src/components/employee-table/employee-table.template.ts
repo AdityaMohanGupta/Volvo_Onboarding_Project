@@ -1,6 +1,6 @@
 import { html } from 'lit'
-import type { Employee } from '../models/employee'
-import { checkCircleIcon, closeIcon, pencilIcon, trashIcon } from './icons'
+import type { Employee } from '../../models/employee'
+import { checkCircleIcon, closeIcon, pencilIcon, trashIcon } from '../../assets/icons'
 
 // everything the template needs - passed in as plain data + callbacks, no access to component internals
 export interface EmployeeTableViewProps {

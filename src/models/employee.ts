@@ -15,11 +15,3 @@ export type EmployeeDraft = Omit<Employee, 'id'>
 //Form state is a partial draft
 
 export type EmployeeFormState = Partial<EmployeeDraft>
-
-//payload of the "employee-save" event <employee-form> dispatches
-//id is null when adding a new employee, set when updating an existing one
-
-export interface EmployeeSaveDetail {
-  id: string | null
-  draft: EmployeeDraft
-}

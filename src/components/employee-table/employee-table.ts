@@ -1,24 +1,19 @@
 import { LitElement } from 'lit'
-import { customElement, state } from 'lit/decorators.js'
-import type { Employee, EmployeeSaveDetail } from '../models/employee'
-import { EntityStore } from '../store/entity-store'
-import { createId } from '../utils/id'
-import { employeeDeleteEvent, employeeEditEvent, employeeSaveEvent } from '../events'
+import { customElement, property, state } from 'lit/decorators.js'
+import type { Employee } from '../../models/employee'
+import { employeeDeleteEvent, employeeEditEvent } from '../../events'
 import { employeeTableStyles } from './employee-table.styles'
 import { renderEmployeeTable } from './employee-table.template'
 
-// <employee-table> - fully standalone, owns the actual employee list.
-// it only ever talks to the rest of the page through two events:
-//   - listens for "employee-save" (from anywhere) to add/update its list
-//   - dispatches "employee-edit" when its Edit button is clicked
+// <employee-table> - a dumb, reusable list. It doesn't own the data - main.ts
+// hands it the current list through the `employees` property, and this
+// component only ever announces user actions by dispatching "employee-edit" /
+// "employee-delete". It never removes anything from the list itself.
 @customElement('employee-table')
 export class EmployeeTable extends LitElement {
-  //the actual in-memory "database" - data is lost on page refresh
-  private readonly store = new EntityStore<Employee>()
-
-  //the full list currently shown
-  @state()
-  private employees: readonly Employee[] = []
+  // set from outside (by main.ts) - the full list to display
+  @property({ attribute: false })
+  employees: readonly Employee[] = []
 
   // the "Employee deleted successfully!" style banner text, or null when hidden
   @state()
@@ -26,30 +21,11 @@ export class EmployeeTable extends LitElement {
 
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null
 
-  connectedCallback(): void {
-    super.connectedCallback()
-    document.addEventListener(employeeSaveEvent, this.handleExternalSave)
-  }
-
   disconnectedCallback(): void {
     super.disconnectedCallback()
-    document.removeEventListener(employeeSaveEvent, this.handleExternalSave)
     if (this.toastTimeoutId !== null) {
       clearTimeout(this.toastTimeoutId)
     }
-  }
-
-  // an arrow function field keeps `this` bound correctly when used as an event listener
-  private handleExternalSave = (event: Event): void => {
-    const { id, draft } = (event as CustomEvent<EmployeeSaveDetail>).detail
-
-    if (id) {
-      this.store.update(id, draft)
-    } else {
-      this.store.add({ id: createId(), ...draft })
-    }
-
-    this.employees = this.store.all
   }
 
   render() {
@@ -62,7 +38,7 @@ export class EmployeeTable extends LitElement {
     })
   }
 
-  // tells whoever's listening (an <employee-form> on the page) to load this employee
+  // tells whoever's listening (main.ts) to load this employee into the form
   private handleEdit(employee: Employee): void {
     this.dispatchEvent(
       new CustomEvent(employeeEditEvent, {
@@ -73,13 +49,10 @@ export class EmployeeTable extends LitElement {
     )
   }
 
+  // tells whoever's listening (main.ts) to remove this employee - this
+  // component doesn't own the list, so it can't remove it itself
   private handleDelete(id: string): void {
-    this.store.remove(id)
-    this.employees = this.store.all
     this.showToast('Employee deleted successfully!')
-
-    // tells whoever's listening (an <employee-form> that might be mid-edit on this
-    // very id) that it's gone, so it doesn't stay open editing a deleted record
     this.dispatchEvent(
       new CustomEvent(employeeDeleteEvent, {
         detail: id,
