@@ -122,11 +122,20 @@ export class EmployeeForm extends LitElement {
     )
 
     this.showToast(this.employee ? 'Employee updated successfully!' : 'Employee added successfully!')
-    this.employee = null
+    this.resetForm()
   }
 
   private handleClear(): void {
+    this.resetForm()
+  }
+
+  // explicit reset, rather than relying on willUpdate's `employee` change-detection -
+  // when adding a brand new employee, `employee` is null before AND after this runs,
+  // so Lit would never see it as "changed" and the form would never actually clear
+  private resetForm(): void {
     this.employee = null
+    this.form = { ...emptyForm }
+    this.submitted = false
   }
 
   private showToast(message: string): void {
