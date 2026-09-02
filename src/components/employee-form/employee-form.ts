@@ -28,6 +28,18 @@ const emptyForm: EmployeeFormState = {
   email: '',
 }
 
+// true when every required field is filled in and the email looks like a real
+// email. This is a type guard (the `form is EmployeeDraft` return type) - so
+// everywhere this is checked, TypeScript also learns `form` is genuinely a
+// complete EmployeeDraft afterward, no separate `as EmployeeDraft` cast needed
+function isCompleteDraft(form: EmployeeFormState): form is EmployeeDraft {
+  return fields.every((field) => {
+    const value = form[field.key]?.trim() ?? ''
+    if (field.key === 'email') return isValidEmail(value)
+    return !field.required || value.length > 0
+  })
+}
+
 // <employee-form> - a dumb, reusable form. It doesn't own any list or store.
 // main.ts hands it an employee to edit (or null, for a blank form) through the
 // `employee` property; the form only ever announces what happened by
@@ -51,15 +63,6 @@ export class EmployeeForm extends LitElement {
   private toast: string | null = null
 
   private toastTimeoutId: ReturnType<typeof setTimeout> | null = null
-
-  // true when every required field is filled in and the email looks like a real email
-  private get isFormValid(): boolean {
-    return fields.every((field) => {
-      const value = this.form[field.key]?.trim() ?? ''
-      if (field.key === 'email') return isValidEmail(value)
-      return !field.required || value.length > 0
-    })
-  }
 
   // Lit calls this whenever a reactive property changes, including `employee`
   // being set from outside - this is how the form reacts to prop-down data
@@ -97,20 +100,22 @@ export class EmployeeForm extends LitElement {
   }
 
   private handleInput(key: keyof EmployeeFormState, event: InputEvent): void {
-    const target = event.target as HTMLInputElement
-    this.form = { ...this.form, [key]: target.value }
+    // genuine runtime check rather than an unverified claim - if this ever
+    // isn't really an <input>, we just skip the update instead of crashing
+    if (!(event.target instanceof HTMLInputElement)) return
+    this.form = { ...this.form, [key]: event.target.value }
   }
 
   // runs on Save - builds a complete Employee (reusing the id if editing, a
   // fresh one otherwise) and just announces it; main.ts decides what to do with it
   private handleSave(): void {
     this.submitted = true
-    if (!this.isFormValid) return
+    if (!isCompleteDraft(this.form)) return
 
-    const draft = this.form as EmployeeDraft
+    // isCompleteDraft narrowed `this.form` to EmployeeDraft above - no cast needed
     const employeeToSave: Employee = {
       id: this.employee?.id ?? createId(),
-      ...draft,
+      ...this.form,
     }
 
     this.dispatchEvent(
